@@ -6,8 +6,9 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.
 
 const Container = (props) => {
   const { user } = AuthForm.useUser()
-  if (user) {
     const router = useRouter(); 
+
+  if (user) {
     router.reload();
     return null;
   }
