@@ -4,9 +4,12 @@ import Avatar from './Avatar'
 
 export default function Account({ session }) {
   const [loading, setLoading] = useState(true)
-  const [username, setUsername] = useState(null)
-  const [website, setWebsite] = useState(null)
-  const [avatar_url, setAvatarUrl] = useState(null)
+  const [phone, setPhone] = useState(null)
+  const [first_name, setFirstname] = useState(null)
+  const [last_name, setLastname] = useState(null)
+  const [country, setCountry] = useState(null)
+  const [city, setCity] = useState(null)
+  const [doc_url, setDocUrl] = useState(null)
 
   useEffect(() => {
     getProfile()
@@ -19,7 +22,7 @@ export default function Account({ session }) {
 
       let { data, error, status } = await supabase
         .from('profiles')
-        .select(`username, website, avatar_url`)
+        .select(`phone, first_name, last_name, country, city, doc_url, created_at`)
         .eq('id', user.id)
         .single()
 
@@ -27,10 +30,23 @@ export default function Account({ session }) {
         throw error
       }
 
+      if (!data.created_at) {
+        let { error } = await supabase.from('profiles').upsert({ id: user.id, created_at: user.created_at }, {
+            returning: 'minimal', // Don't return the value after inserting
+        })
+    
+          if (error) {
+            throw error
+          }
+      }
+
       if (data) {
-        setUsername(data.username)
-        setWebsite(data.website)
-        setAvatarUrl(data.avatar_url)
+        setPhone(data.phone)
+        setFirstname(data.first_name)
+        setLastname(data.last_name)
+        setCountry(data.country)
+        setCity(data.city)
+        setDocUrl(data.doc_url)
       }
     } catch (error) {
       alert(error.message)
@@ -39,16 +55,19 @@ export default function Account({ session }) {
     }
   }
 
-  async function updateProfile({ username, website, avatar_url }) {
+  async function updateProfile({ phone, first_name, last_name, country, city, doc_url }) {
     try {
       setLoading(true)
       const user = supabase.auth.user()
 
       const updates = {
         id: user.id,
-        username,
-        website,
-        avatar_url,
+        phone,
+        first_name,
+        last_name,
+        country,
+        city,
+        doc_url,
         updated_at: new Date(),
       }
 
@@ -68,52 +87,78 @@ export default function Account({ session }) {
 
   return (
     <div className="form-widget">
-    <Avatar
-        url={avatar_url}
-        size={150}
-        onUpload={(url) => {
-            setAvatarUrl(url)
-            updateProfile({ username, website, avatar_url: url })
+        <Avatar
+            url={doc_url}
+            size={150}
+            onUpload={(url) => {
+                setDocUrl(url)
             }}
         />
-      <div>
-        <label htmlFor="email">Email</label>
-        <input id="email" type="text" value={session.user.email} disabled />
-      </div>
-      <div>
-        <label htmlFor="username">Name</label>
-        <input
-          id="username"
-          type="text"
-          value={username || ''}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-      </div>
-      <div>
-        <label htmlFor="website">Website</label>
-        <input
-          id="website"
-          type="website"
-          value={website || ''}
-          onChange={(e) => setWebsite(e.target.value)}
-        />
-      </div>
+        <div>
+            <label htmlFor="email">Email</label>
+            <input id="email" type="text" value={session.user.email} disabled />
+        </div>
+        <div>
+            <label htmlFor="phone">Phone number</label>
+            <input
+            id="phone"
+            type="number"
+            value={phone || ''}
+            onChange={(e) => setPhone(e.target.value)}
+            />
+        </div>
+        <div>
+            <label htmlFor="firstname">First name</label>
+            <input
+            id="firstname"
+            type="text"
+            value={first_name || ''}
+            onChange={(e) => setFirstname(e.target.value)}
+            />
+        </div>
+        <div>
+            <label htmlFor="lastname">Last name</label>
+            <input
+                id="lastname"
+                type="text"
+                value={last_name || ''}
+                onChange={e => setLastname(e.target.value)}
+            />
+        </div>
+        <div>
+            <label htmlFor="country">Country</label>
+            <input
+            id="country"
+            type="text"
+            value={country || ''}
+            onChange={(e) => setCountry(e.target.value)}
+            />
+        </div>
+        <div>
+            <label htmlFor="city">City</label>
+            <input
+            id="city"
+            type="text"
+            value={city || ''}
+            onChange={(e) => setCity(e.target.value)}
+            />
+        </div>
 
-      <div>
-        <button
-          className="button block primary"
-          onClick={() => updateProfile({ username, website, avatar_url })}
-          disabled={loading}
-        >
-          {loading ? 'Loading ...' : 'Update'}
-        </button>
-      </div>
+        <div>
+            <button
+            className="button block primary"
+            onClick={() => updateProfile({ phone, first_name, last_name, country, city, doc_url })}
+            disabled={loading}
+            >
+            {loading ? 'Loading ...' : 'Update'}
+            </button>
+        </div>
 
-      <div>
-        <button className="button block" onClick={() => supabase.auth.signOut()}>
-          Sign Out
-        </button>
-      </div>
+        <div>
+            <button className="button block" onClick={() => supabase.auth.signOut()}>
+            Sign Out
+            </button>
+        </div>
     </div>
   )
 }
