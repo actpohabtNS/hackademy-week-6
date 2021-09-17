@@ -9,9 +9,9 @@ steps:
   - npm install
   - npm run build
   when:
-  branch:
-    exclude:
-    - master
+    branch:
+      exclude:
+      - master
 
 - name: docker  
   image: plugins/docker
