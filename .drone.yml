@@ -1,6 +1,6 @@
 ---
 kind: pipeline
-name: "Push on master"
+name: "Build not on master"
 
 steps:
 - name: node
@@ -8,6 +8,10 @@ steps:
   commands:
   - npm install
   - npm run build
+  when:
+  branch:
+    exclude:
+    - master
 
 - name: docker  
   image: plugins/docker
@@ -18,8 +22,3 @@ steps:
       from_secret: registry_password
     repo: astronautns/supabase-nextjs
     tags: ${DRONE_COMMIT_SHA:0:7}
-
-trigger:
-  branch:
-    exclude:
-    - master
